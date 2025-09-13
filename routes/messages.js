@@ -12,15 +12,12 @@ router.get('/conversation/:conversationId', authMiddleware, async (req, res) => 
     const {id} = req.user;
     const conversationId = req.params.conversationId;
     const conversationData = await Conversation.findById(conversationId).populate('participants','name email');
-    const friend = conversationData?.participants.find(p => String(p._id) !== id);
-    console.log(friend);
-    // const messages = await Meassage.find({ conversation: req.params.conversationId })
-    //   .sort({ createdAt: 1 })
-    //   .populate('sender', 'name email');
-
-    
-    return;
-    res.json(messages);
+    const friend = conversationData?.participants.find(p => p._id.toString() !== id);
+    const messages = await Meassage.find({ conversation: req.params.conversationId })
+      .sort({ createdAt: 1 })
+      .populate('sender', 'name email');
+ 
+    res.json({data : friend,messages });
    
   } catch (err) {
     res.status(500).json({ error: err.message });

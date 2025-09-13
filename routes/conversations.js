@@ -27,16 +27,34 @@ router.post('/',authMiddleware, async (req, res) => {
 });
 
 // get conversations for a user
-router.get('/',authMiddleware, async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   try {
-    const {id} = req.user;
+    const { id } = req.user;
+
     const convos = await Conversation.find({ participants: id })
       .sort({ updatedAt: -1 })
-      .populate('participants', 'name email');
-    res.json(convos);
+      .populate("participants", "name email");
+
+    // 🔹 Transform: keep only "friend" info
+    const list = convos.map((c) => {
+      const user = c.participants.find((p) => p._id.toString() !== id);
+      return {
+        conversation: c._id,
+        friend : user , // only friend info
+        updatedAt: c.updatedAt,
+        // lastMessage: c.lastMessage || null, // optional if you store
+      };
+    });
+
+    res.json({
+      conversations: convos,  
+      list,  
+    });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
 
+// const conversationList = convos.map(con => con.participants.find((f)=> String(f._id) !== id))
 module.exports = router;

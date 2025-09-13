@@ -1,3 +1,4 @@
+const Conversation = require("../models/conversation");
 const Message = require("../models/message");
 
 
@@ -11,6 +12,9 @@ const messageHandler = async(io, socket)=>{
       text,
     });
 
+    await Conversation.findByIdAndUpdate(conversationId,{lastMessage : text},{new : true, runValidators : true});
+
+
     // Broadcast to all participants in the room
     io.to(conversationId).emit("new_message", {
       ...message.toObject(),
@@ -20,6 +24,7 @@ const messageHandler = async(io, socket)=>{
 
   // Join single conversation room
   socket.on("join_conversation", (conversationId) => {
+    console.log('join conversation');
     socket.join(conversationId);
   });
 }
